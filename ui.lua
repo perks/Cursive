@@ -374,8 +374,15 @@ local function CreateBarThirdSection(unitFrame, guid)
 		curse.timer:SetFont(STANDARD_TEXT_FONT, 11, "OUTLINE")
 		curse.timer:SetTextColor(1, 1, 1)
 		curse.timer:SetAllPoints(curse)
-
 		curse.timer:Hide()
+
+		curse.stacks = thirdSection:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+		curse.stacks:SetFontObject(GameFontHighlight)
+		curse.stacks:SetFont(STANDARD_TEXT_FONT, 16, "OUTLINE")
+		curse.stacks:SetTextColor(1, 1, 1)
+		curse.stacks:SetPoint("RIGHT", curse, "RIGHT", ui.padding + config.curseiconsize, 0)
+		curse.stacks:Hide()
+		
 		curse:Hide()
 		unitFrame["curse" .. i] = curse
 	end
@@ -458,6 +465,7 @@ local function DisplayGuid(guid, row, col)
 		local curse = unitFrame["curse" .. i]
 		curse:Hide()
 		curse.timer:Hide()
+		curse.stacks:Hide()
 	end
 
 	local guidCurses = Cursive.curses.guids[guid]
@@ -471,11 +479,27 @@ local function DisplayGuid(guid, row, col)
 			local curse = unitFrame["curse" .. curseNumber]
 			if remaining >= 0 then
 				curse:SetTexture(Cursive.curses.trackedCurseIds[curseData.spellID].texture)
+
+				if curseData.spellID == 11597 then -- special case for sunder only, hacky AF
+					local stackCount = Cursive.curses:GetSunderStacks(guid)
+					if stackCount == 5 then
+						curse.stacks:SetTextColor(0, 1, 0, 1)
+					elseif stackCount == 4 then
+						curse.stacks:SetTextColor(0, 0.6, 0, 1)
+					elseif stackCount == 3 then
+						curse.stacks:SetTextColor(1, 1, 0, 1)
+					elseif stackCount == 2 then
+						curse.stacks:SetTextColor(1, 0.647, 0, 1)
+					elseif stackCount == 1 then
+						curse.stacks:SetTextColor(1, 0, 0, 1)
+					end				  
+					curse.stacks:SetText(stackCount)
+					curse.stacks:Show()
+				end
 				-- curse:SetTexCoord(.078, .92, .079, .937) rounded icons
 				curse.timer:SetText(remaining)
 				curse.timer:Show()
 				curse:Show()
-
 				if remaining < 1 then
 					if Cursive.curses:ShouldPlayExpiringSound(curseName, guid) then
 						PlaySoundFile("Interface\\AddOns\\Cursive\\sounds\\expiring.mp3")
