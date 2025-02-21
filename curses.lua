@@ -32,6 +32,9 @@ local curses = {
 -- combat events for curses
 local fades_test = L["(.+) fades from (.+)"]
 local resist_test = L["Your (.+) was resisted by (.+)"]
+local parry_test = "(%S+)%s(.+) is parried by (.+)"
+local miss_test = "(%S+)%s(.+) missed (.+)"
+local dodge_test = "(%S+)%s(.+) was dodged by (.+)"
 
 local lastGuid = nil
 
@@ -56,8 +59,9 @@ function curses:LoadCurses()
 		curses.trackedCurseIds = getRogueSpells()
 	elseif playerClassName == "SHAMAN" then
 		curses.trackedCurseIds = getShamanSpells()
+	elseif playerClassName == "WARRIOR" then
+		curses.trackedCurseIds = getWarriorSpells()
 	end
-
 	-- go through spell slots and
 	local i = 1
 	while true do
@@ -162,7 +166,7 @@ Cursive:RegisterEvent("UNIT_CASTEVENT", function(casterGuid, targetGuid, event, 
 	-- immolate will fire both start and cast
 	if event == "CAST" then
 		local _, guid = UnitExists("player")
-		if casterGuid ~= guid then
+		if casterGuid ~= guid and spellID ~= 11597 then
 			return
 		end
 
@@ -172,6 +176,7 @@ Cursive:RegisterEvent("UNIT_CASTEVENT", function(casterGuid, targetGuid, event, 
 			targetGuid = targetGuid,
 			castDuration = castDuration
 		}
+
 
 		if curses.trackedCurseIds[spellID] then
 			lastGuid = targetGuid
@@ -224,6 +229,18 @@ Cursive:RegisterEvent("CHAT_MSG_SPELL_SELF_DAMAGE",
 		function(message)
 			-- check for resist
 			local _, _, spellName, target = string.find(message, resist_test)
+			if not spellName and not target then
+				_, _, _, spellName, target = string.find(message, dodge_test)
+			end
+
+			if not spellName and not target then
+				_, _, _, spellName, target = string.find(message, miss_test)
+			end
+
+			if not spellName and not target then
+				_, _, _, spellName, target = string.find(message, parry_test)
+			end
+
 			if spellName and target then
 				spellName = string.lower(spellName)
 
@@ -388,6 +405,12 @@ function curses:HasCurse(spellName, targetGuid, minRemaining)
 	end
 
 	if curses.guids[targetGuid] and curses.guids[targetGuid][spellName] then
+		if spellName == "sunder armor" then
+			local stackCount = Cursive.curses:GetSunderStacks(targetGuid)
+			if stackCount < 5 then
+				return nil
+			end
+		end
 		local remaining = Cursive.curses:TimeRemaining(curses.guids[targetGuid][spellName])
 		if remaining > minRemaining then
 			return true
@@ -455,5 +478,17 @@ function curses:RemoveGuid(guid)
 	curses.expiringSoundGuids[guid] = nil
 	curses.requestedExpiringSoundGuids[guid] = nil
 end
+
+function curses:GetSunderStacks(unit)
+	local SunderArmorTexture = "Interface\\Icons\\Ability_Warrior_Sunder"
+	for i = 1, 16 do
+		local name, icon, count = UnitDebuff(unit, i)
+		if name == SunderArmorTexture then
+		  return tonumber(icon) or 0
+		end
+		return 0
+	end
+end
+
 
 Cursive.curses = curses
