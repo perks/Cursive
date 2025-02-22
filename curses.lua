@@ -480,15 +480,25 @@ function curses:RemoveGuid(guid)
 end
 
 function curses:GetSunderStacks(unit)
-	local SunderArmorTexture = "Interface\\Icons\\Ability_Warrior_Sunder"
-	for i = 1, 16 do
-		local name, icon, count = UnitDebuff(unit, i)
-		if name == SunderArmorTexture then
-		  return tonumber(icon) or 0
-		end
-		return 0
+	local stack_count = 0-1
+	local i = 1
+	while true do
+	   local stacks, aura_id = curses:getAura(unit, i)
+	   if not aura_id then break end  -- End of buffs/debuffs list
+	   if aura_id < -1 then aura_id = aura_id + 65536 end
+	   if "Sunder Armor" == SpellInfo(aura_id) then
+		  stack_count = stacks or 1
+		  break
+	   end
+	   i = i + 1
 	end
+	return stack_count
 end
+
+function curses:getAura(unit, index)
+	local _, stacks, _, aura_id = UnitDebuff(unit, index)
+	return stacks, aura_id
+ end
 
 
 Cursive.curses = curses
