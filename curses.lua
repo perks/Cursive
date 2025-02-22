@@ -480,7 +480,7 @@ function curses:RemoveGuid(guid)
 end
 
 function curses:GetSunderStacks(unit)
-	local stack_count = 0-1
+	local stack_count = 0
 	local i = 1
 	while true do
 	   local stacks, aura_id = curses:getAura(unit, i)
