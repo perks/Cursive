@@ -36,6 +36,15 @@ casts spell if not already on target and they aren't cc'ed.
 EXAMPLE: `/cursive multicurse Corruption|HIGHEST_HP` will attempt to cast Corruption picking the target with the highest
 HP that doesn't already have it and will warn you if it does nothing.
 
+### Target
+
+`/cursive target <spellName:str>|<priority?:str>|<options?:comma separated str>`: Targets unit based on priority if spell in range and not already on target
+
+EXAMPLE: `/cursive target Icicles|HIGHEST_HP` will target the enemy with the highest HP in range of the spell Icicles.
+
+can also do it only if you don't have a target already:
+`/run if not UnitName("target") then SlashCmdList.CURSIVE("target Icicles|HIGHEST_HP") end`
+
 ## Priority Options
 
 - HIGHEST_HP - Target highest HP enemy without a curse first.
@@ -75,17 +84,23 @@ All commands can take the following options separated by commas:
 - `expiringsound` : "Play a sound when a curse is about to expire.",
 - `allowooc` : "Allow out of combat targets to be multicursed. Would only consider using this solo to avoid potentially
   griefing raids/dungeons by pulling unintended mobs.",
-- `ignoretarget` : "Ignore the current target when choosing target for multicurse.  Does not affect 'curse' command.",
-- `playeronly` : "Only choose players and ignore npcs when choosing target for multicurse.  Does not affect 'curse' command.",
+- `priotarget` : "Always prioritize current target when choosing target for multicurse. Does not affect 'curse'
+  command.",
+- `ignoretarget` : "Ignore the current target when choosing target for multicurse. Does not affect 'curse' command.",
+- `playeronly` : "Only choose players and ignore npcs when choosing target for multicurse. Does not affect 'curse'
+  command.",
 - `minhp=<number>` : "Minimum HP for a target to be considered.",
 - `refreshtime=<number>` : "Time threshold at which to allow refreshing a curse. Default is 0 seconds.",
-- `name=<str>` : "Filter targets by name. Can be a partial match.  If no match is found, the command will do nothing.",
-- `ignorespellid=<number>` : "Ignore targets with the specified spell id already on them. Useful for ignoring targets that already have a shared debuff.",
-- `ignorespelltexture=<number>` : "Ignore targets with the specified spell texture already on them. Useful for ignoring targets that already have a shared debuff.",
+- `name=<str>` : "Filter targets by name. Can be a partial match. If no match is found, the command will do nothing.",
+- `ignorespellid=<number>` : "Ignore targets with the specified spell id already on them. Useful for ignoring targets
+  that already have a shared debuff.",
+- `ignorespelltexture=<number>` : "Ignore targets with the specified spell texture already on them. Useful for ignoring
+  targets that already have a shared debuff.",
 
 EXAMPLE: `/cursive multicurse Corruption|HIGHEST_HP|warnings,resistsound,expiringsound,minhp=10000,refreshtime=2`
 
-EXAMPLE: `/cursive multicurse Curse of Recklessness|RAID_MARK|name=Touched Warrior,ignorespelltexture=Spell_Shadow_UnholyStrength,resistsound,expiringsound`
+EXAMPLE:
+`/cursive multicurse Curse of Recklessness|RAID_MARK|name=Touched Warrior,ignorespelltexture=Spell_Shadow_UnholyStrength,resistsound,expiringsound`
 
 ## Important info
 
